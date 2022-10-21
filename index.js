@@ -1,6 +1,23 @@
-exports.handler = async (event) => {
-    console.log(event.messages);
+const AWS = require('aws-sdk');
+AWS.config.region = 'us-east-1';
+let lambda = new AWS.Lambda();
 
+exports.handler = async (event) => {
+    console.log(AWS.VERSION);
+    let inputBody = event.messages[0].unstructured.text;
+    console.log(inputBody);
+    
+    let lexService = new AWS.LexRuntime();
+    let paramsToLex = {
+      botName: "Restaurant_Recommender",
+      botAlias: "dev",
+      userId: "cloud",
+      inputText: inputBody
+    };
+    let lexResult = await lexService.postText(paramsToLex).promise();
+    console.log(lexResult);
+    console.log(lexResult.message);  
+  // ----------------------------------------------------------------------------
     let msgType = "unstructured";
 
     // body message has to be in array format
@@ -9,45 +26,14 @@ exports.handler = async (event) => {
           "type": msgType,
           "unstructured": {
             "id": "string",
-            "text": "Application under development. Search functionality will be implemented in Assignment 2",
+            /* change to lexResult message for now*/
+            "text": lexResult.message,
             "timestamp": "string"
           }
         }
     ];
-    console.log(successMsg);
     
-    let unauthErrorMsg =[
-        {
-          "type": "unstructured",
-          "unstructured": {
-            "id": "string",
-            "text": "This is unauthErrorMsg.",
-            "timestamp": "string"
-          }
-        }
-    ];
-    console.log(unauthErrorMsg);
-    let unexpectedErrorMsg =[
-        {
-          "type": "unstructured",
-          "unstructured": {
-            "id": "string",
-            "text": "This is unexpectedErrorMsg.",
-            "timestamp": "string"
-          }
-        }
-    ];
-    console.log(unexpectedErrorMsg);
-
-
     // reponses:
-    const errResponse = {
-        statusCode: 403,
-        headers: {
-            "Access-Control-Allow-Origin": "*",
-        },
-        body: unexpectedErrorMsg,
-    };
     const successResponse = {
         statusCode: 200,
         headers: {
